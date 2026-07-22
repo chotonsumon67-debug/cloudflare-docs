@@ -347,8 +347,12 @@ function renderFixInAgentBlock(
 		"- If you need clarification before deciding, ask those questions",
 		"- Then share your plan for which issues to tackle and in what order",
 		"",
-		"After triaging, fix all legitimate findings. For any you decide to skip,",
-		"post a comment on this PR with the finding ID and your reasoning.",
+		"After triaging, follow this order:",
+		"1. Post a comment on this PR for any findings you are skipping, with the finding ID and your reasoning.",
+		"2. Then commit the fixes for the legitimate findings.",
+		"",
+		"The comment must come before the commit — the bot reads PR comments when a new",
+		"push triggers a review, so skip comments posted after the push will be missed.",
 	].join("\n");
 
 	const sections = [
@@ -366,7 +370,7 @@ function renderFixInAgentBlock(
 
 	return [
 		"<details>",
-		"<summary>Fix in your agent</summary>",
+		"<summary>👉 Fix in your agent 👈</summary>",
 		"",
 		fenced,
 		"",
@@ -543,10 +547,7 @@ export function renderComment(
 		"| `/disable-auto-review` | Stops automatic reviews from triggering on future pushes to this PR. Codeowners can still run `/review` or `/full-review` manually. |",
 	);
 	lines.push(
-		"| `/rebase` | Rebases the PR branch against `production`. Stops if there are conflicts and reports which files conflict. |",
-	);
-	lines.push(
-		"| `/rebaseWithConflicts` | Rebases against `production` and attempts to resolve conflicts automatically using AI. Stops with an explanation if confidence is not high enough. |",
+		"| `/rebase` | Rebases the PR branch against `production`. On conflict, attempts to resolve automatically using AI. Stops with an explanation if confidence is not high enough. |",
 	);
 	lines.push("");
 	lines.push("</details>");
@@ -650,11 +651,6 @@ function rebaseStatusLine(
 			return `⏳ **Rebase:** Rebasing against \`production\`${by}…`;
 		case "complete":
 			return `✅ **Rebase:** Rebased against \`production\` — full review triggered.`;
-		case "halted-conflict":
-			return [
-				`⚠️ **Rebase:** Rebase halted — conflicts detected. Resolve manually or use \`/rebaseWithConflicts\`.`,
-				...(detail ? [`> ${sanitizeRebaseDetail(detail)}`] : []),
-			].join("\n");
 		case "halted-wrong-base":
 			return `⚠️ **Rebase:** Rebase skipped — this PR targets \`${sanitizeRebaseDetail(detail ?? "a non-production branch")}\`, not \`production\`. Rebase is only supported for PRs targeting \`production\`.`;
 		case "halted-fork":
